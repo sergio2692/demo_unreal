@@ -9,6 +9,10 @@
 #include "Particles/ParticleSystem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Components/SphereComponent.h"
+#include "MainCharacter.h"
+#include "TimerManager.h"
+
 // Sets default values
 AMainWeapon::AMainWeapon()
 {
@@ -17,19 +21,40 @@ AMainWeapon::AMainWeapon()
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("weapon"));
 	RootComponent = Weapon;
 	
+	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	CollisionComp->InitSphereRadius(200.0f);
+	CollisionComp->SetupAttachment(Weapon);
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AMainWeapon::OnComponentBeginOverlap);
+	CollisionComp->OnComponentEndOverlap.AddDynamic(this, &AMainWeapon::OnComponentEndOverlap);
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
 
+	BulletSpread = 2.0f;
+	RateOfFire = 600;
 }
-
-// Called when the game starts or when spawned
 void AMainWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	TimeBetweenShots = 60 / RateOfFire;
 }
 
-void AMainWeapon::Fire(UWorld* MyWorld)
+void AMainWeapon::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
+	AMainCharacter* Character = Cast<AMainCharacter>(OtherActor);
+	AActor* MyOwner = GetOwner();
+
+	if (Character && !MyOwner) {
+		Character->weaponOverlap = this;
+	}
+}
+
+void AMainWeapon::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	AMainCharacter* Character = Cast<AMainCharacter>(OtherActor);
+	if (Character) {
+		Character->weaponOverlap = nullptr;
+	}
+}
+
+void AMainWeapon::Fire()
 {
 	
 	AActor* MyOwner = GetOwner();
@@ -70,10 +95,25 @@ void AMainWeapon::Fire(UWorld* MyWorld)
 
 }
 
+
+void AMainWeapon::StartFire()
+{
+	float FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &AMainWeapon::Fire, TimeBetweenShots, true, FirstDelay);
+}
+
+
+void AMainWeapon::StopFire()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
+}
 // Called every frame
 void AMainWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
+
+
 

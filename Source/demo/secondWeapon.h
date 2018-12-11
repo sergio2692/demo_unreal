@@ -21,7 +21,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 	TSubclassOf<AActor> ProjectileClass;
 public:
-	virtual void Fire(UWorld* MyWorld) override;
+	virtual void Fire() override;
 	
 	
 };

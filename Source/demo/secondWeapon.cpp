@@ -5,7 +5,7 @@
 #include "Projectile.h"
 
 
-void AsecondWeapon::Fire(UWorld* MyWorld)
+void AsecondWeapon::Fire()
 {
 	AActor* MyOwner = GetOwner();
 	if (ProjectileClass)

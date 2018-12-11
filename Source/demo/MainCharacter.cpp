@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "MainWeapon.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -20,14 +21,15 @@ AMainCharacter::AMainCharacter()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	CameraComponent->SetupAttachment(SpringArm);
-
+	currentWeapon = nullptr;
+	weaponOverlap = nullptr;
 }
 
 // Called when the game starts or when spawned
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	currentWeapon = nullptr;
 }
 
 void AMainCharacter::moveForward(float value)
@@ -57,6 +59,7 @@ void AMainCharacter::StopCrouch()
 }
 
 
+
 // Called to bind functionality to input
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -72,8 +75,28 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 
-} 
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMainCharacter::StartFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMainCharacter::StopFire);
 
+} 
+void AMainCharacter::StartFire()
+{
+	AMainWeapon* mainweapon = Cast<AMainWeapon>(currentWeapon);
+	if (mainweapon)
+	{
+		mainweapon->StartFire();
+	}
+}
+
+
+void AMainCharacter::StopFire()
+{
+	AMainWeapon* mainweapon = Cast<AMainWeapon>(currentWeapon);
+	if (mainweapon)
+	{
+		mainweapon->StopFire();
+	}
+}
 FVector AMainCharacter::GetPawnViewLocation() const
 {
 	if (CameraComponent) {

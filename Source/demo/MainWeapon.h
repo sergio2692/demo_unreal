@@ -8,6 +8,8 @@
 class USkeletalMesh;
 class UDamageType;
 class UParticleSystem;
+class USphereComponent;
+
 UCLASS()
 class DEMO_API AMainWeapon : public AActor
 {
@@ -17,13 +19,43 @@ public:
 	// Sets default values for this actor's properties
 	AMainWeapon();
 
+	
+	void StartFire();
+	void StopFire();
+
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	
+	UFUNCTION()
+	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	USkeletalMeshComponent* Weapon;
+
+	
+
 	UFUNCTION(BlueprintCallable,Category= "weapon")
-	virtual void Fire(UWorld* MyWorld);
+	virtual void Fire();
+
+	FTimerHandle TimerHandle_TimeBetweenShots;
+
+	/* RPM - Bullets per minute fired by weapon */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float RateOfFire;
+
+	/* Bullet Spread in Degrees */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = 0.0f))
+	float BulletSpread;
+
+	float LastFireTime;
+
+	float TimeBetweenShots;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USphereComponent* CollisionComp;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 		TSubclassOf<UDamageType> DamageType;
@@ -44,6 +76,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 
 	
 	

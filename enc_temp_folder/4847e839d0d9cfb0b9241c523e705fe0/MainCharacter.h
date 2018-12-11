@@ -40,7 +40,7 @@ protected:
 
 	
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* currentWeapon;
 
 public:	
